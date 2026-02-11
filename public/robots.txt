@@ -1,0 +1,13 @@
+# Robots.txt for Intellirev AI Solutions
+# https://ai.intellirev.space
+
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin and authentication pages from search results
+Disallow: /admin
+Disallow: /login
+
+# Sitemap location
+Sitemap: https://ai.intellirev.space/sitemap.xml
