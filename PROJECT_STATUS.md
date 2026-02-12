@@ -1,6 +1,6 @@
 # IntelliRev Website - Project Status
 
-**Last Updated:** February 13, 2026  
+**Last Updated:** February 13, 2026 - Switched from SendGrid to Resend  
 **Project:** IntelliRev AI Solutions Website  
 **Repository:** https://github.com/jhonverille/intellirev-website  
 **Live URL:** https://ai.intellirev.space
@@ -98,12 +98,12 @@ inquiries/{inquiryId}/
 
 **Required Actions:**
 1. ✅ Install dependencies: `cd functions && npm install` (DONE)
-2. ⏳ Create SendGrid account: https://sendgrid.com
-3. ⏳ Verify sender email in SendGrid
-4. ⏳ Create SendGrid API Key
+2. ⏳ Create **Resend** account: https://resend.com (CHANGED from SendGrid - better free tier)
+3. ⏳ Verify sender email or domain in Resend
+4. ⏳ Create Resend API Key (starts with `re_`)
 5. ⏳ Set Firebase secrets:
    ```bash
-   firebase functions:secrets:set SENDGRID_API_KEY
+   firebase functions:secrets:set RESEND_API_KEY
    firebase functions:secrets:set ADMIN_EMAIL
    firebase functions:secrets:set FROM_EMAIL
    ```
@@ -152,7 +152,7 @@ inquiries/{inquiryId}/
 **Backend (Cloud Functions):**
 - firebase-functions (v5)
 - firebase-admin (v12)
-- @sendgrid/mail (v8)
+- resend (v3) - **CHANGED FROM SendGrid to Resend (better free tier, no IP warming)**
 
 ---
 
@@ -196,16 +196,17 @@ If resuming work, start here:
 
 ### To Complete Cloud Functions Setup:
 ```bash
-# 1. Go to SendGrid and create account + API key
-# 2. Then run:
-firebase functions:secrets:set SENDGRID_API_KEY
+# 1. Go to Resend and create account + API key: https://resend.com
+# 2. Verify your email/domain in Resend dashboard
+# 3. Then run:
+firebase functions:secrets:set RESEND_API_KEY
 firebase functions:secrets:set ADMIN_EMAIL  
 firebase functions:secrets:set FROM_EMAIL
 
-# 3. Deploy
+# 4. Deploy
 firebase deploy --only functions
 
-# 4. Test
+# 5. Test
 # Submit inquiry at https://ai.intellirev.space
 # Check admin email for notification
 ```
@@ -232,7 +233,7 @@ None at this time.
 ## 📞 SUPPORT RESOURCES
 
 - **Firebase Console:** https://console.firebase.google.com/project/antigravity-portfolio-999
-- **SendGrid Dashboard:** https://app.sendgrid.com
+- **Resend Dashboard:** https://resend.com (CHANGED from SendGrid)
 - **Functions Setup Guide:** `/functions/README.md`
 - **GitHub Repository:** https://github.com/jhonverille/intellirev-website
 
@@ -250,5 +251,5 @@ None at this time.
 ---
 
 **Project Status:** ✅ Ready for Cloud Functions deployment  
-**Next Priority:** Complete SendGrid setup and deploy functions  
+**Next Priority:** Complete Resend setup and deploy functions  
 **Estimated Time:** 15 minutes

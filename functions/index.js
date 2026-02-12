@@ -2,13 +2,13 @@ const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const {logger} = require("firebase-functions");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const sgMail = require("@sendgrid/mail");
+const { Resend } = require("resend");
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
 // Define secrets
-const sendgridApiKey = defineSecret("SENDGRID_API_KEY");
+const resendApiKey = defineSecret("RESEND_API_KEY");
 const adminEmail = defineSecret("ADMIN_EMAIL");
 const fromEmail = defineSecret("FROM_EMAIL");
 
@@ -18,7 +18,7 @@ const fromEmail = defineSecret("FROM_EMAIL");
 exports.sendInquiryNotification = onDocumentCreated(
   {
     document: "inquiries/{inquiryId}",
-    secrets: [sendgridApiKey, adminEmail, fromEmail],
+    secrets: [resendApiKey, adminEmail, fromEmail],
   },
   async (event) => {
     const snapshot = event.data;
@@ -31,8 +31,8 @@ exports.sendInquiryNotification = onDocumentCreated(
     const inquiry = snapshot.data();
     const inquiryId = event.params.inquiryId;
     
-    // Set SendGrid API key
-    sgMail.setApiKey(sendgridApiKey.value());
+    // Initialize Resend
+    const resend = new Resend(resendApiKey.value());
     
     try {
       // Calculate lead score
@@ -47,10 +47,10 @@ exports.sendInquiryNotification = onDocumentCreated(
       logger.log(`Inquiry ${inquiryId} scored: ${leadScore}`);
       
       // Send email to admin
-      await sendAdminNotification(inquiry, inquiryId, leadScore);
+      await sendAdminNotification(resend, inquiry, inquiryId, leadScore);
       
       // Send confirmation to prospect
-      await sendProspectConfirmation(inquiry);
+      await sendProspectConfirmation(resend, inquiry);
       
       logger.log(`Emails sent successfully for inquiry ${inquiryId}`);
     } catch (error) {
@@ -104,91 +104,109 @@ function calculateLeadScore(inquiry) {
 /**
  * Send notification email to admin
  */
-async function sendAdminNotification(inquiry, inquiryId, leadScore) {
+async function sendAdminNotification(resend, inquiry, inquiryId, leadScore) {
   const priority = leadScore >= 80 ? "🔥 HOT" : leadScore >= 50 ? "🟡 WARM" : "🔵 COLD";
   
-  const msg = {
-    to: adminEmail.value(),
-    from: fromEmail.value(),
-    subject: `${priority} Lead: ${inquiry.name} - Score: ${leadScore}/100`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h2 style="color: #f97316; margin-top: 0;">🎯 New Lead Alert</h2>
-          
-          <div style="background: ${getScoreColor(leadScore)}; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px;">
-            <strong>Lead Score: ${leadScore}/100</strong> - ${priority}
+  try {
+    const data = await resend.emails.send({
+      from: fromEmail.value(),
+      to: adminEmail.value(),
+      subject: `${priority} Lead: ${inquiry.name} - Score: ${leadScore}/100`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+          <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #f97316; margin-top: 0;">🎯 New Lead Alert</h2>
+            
+            <div style="background: ${getScoreColor(leadScore)}; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px;">
+              <strong>Lead Score: ${leadScore}/100</strong> - ${priority}
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <p><strong>Name:</strong> ${inquiry.name}</p>
+              <p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p>
+              <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+              <p style="margin: 0;"><strong>Message:</strong></p>
+              <p style="margin: 10px 0 0 0; font-style: italic;">${inquiry.message}</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="https://ai.intellirev.space/admin" 
+                 style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                View in Dashboard
+              </a>
+            </div>
           </div>
           
-          <div style="margin-bottom: 20px;">
-            <p><strong>Name:</strong> ${inquiry.name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p>
-            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-          </div>
-          
-          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-            <p style="margin: 0;"><strong>Message:</strong></p>
-            <p style="margin: 10px 0 0 0; font-style: italic;">${inquiry.message}</p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 30px;">
-            <a href="https://ai.intellirev.space/admin" 
-               style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              View in Dashboard
-            </a>
-          </div>
+          <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
+            IntelliRev AI Solutions - Lead Management System
+          </p>
         </div>
-        
-        <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-          IntelliRev AI Solutions - Lead Management System
-        </p>
-      </div>
-    `,
-  };
-  
-  await sgMail.send(msg);
+      `,
+    });
+    
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+    
+    logger.log(`Admin notification sent successfully`);
+  } catch (error) {
+    logger.error("Error sending admin notification:", error);
+    throw error;
+  }
 }
 
 /**
  * Send confirmation email to prospect
  */
-async function sendProspectConfirmation(inquiry) {
-  const msg = {
-    to: inquiry.email,
-    from: fromEmail.value(),
-    subject: "Thank you for your inquiry - IntelliRev AI Solutions",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="color: #f97316; margin: 0;">Thank You, ${inquiry.name}!</h2>
+async function sendProspectConfirmation(resend, inquiry) {
+  try {
+    const data = await resend.emails.send({
+      from: fromEmail.value(),
+      to: inquiry.email,
+      subject: "Thank you for your inquiry - IntelliRev AI Solutions",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+          <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h2 style="color: #f97316; margin: 0;">Thank You, ${inquiry.name}!</h2>
+            </div>
+            
+            <p>We've received your inquiry and our team is reviewing it. We'll get back to you within 24-48 hours.</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong></p>
+              <p style="margin: 0; font-style: italic; color: #666;">${inquiry.message}</p>
+            </div>
+            
+            <p>In the meantime, feel free to:</p>
+            <ul>
+              <li>Schedule a call: <a href="https://calendly.com/intellirev">Book a meeting</a></li>
+              <li>Visit our website: <a href="https://ai.intellirev.space">ai.intellirev.space</a></li>
+            </ul>
+            
+            <p style="margin-top: 30px;">Best regards,<br>
+            <strong>The IntelliRev AI Team</strong></p>
           </div>
           
-          <p>We've received your inquiry and our team is reviewing it. We'll get back to you within 24-48 hours.</p>
-          
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-            <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong></p>
-            <p style="margin: 0; font-style: italic; color: #666;">${inquiry.message}</p>
-          </div>
-          
-          <p>In the meantime, feel free to:</p>
-          <ul>
-            <li>Schedule a call: <a href="https://calendly.com/intellirev">Book a meeting</a></li>
-            <li>Visit our website: <a href="https://ai.intellirev.space">ai.intellirev.space</a></li>
-          </ul>
-          
-          <p style="margin-top: 30px;">Best regards,<br>
-          <strong>The IntelliRev AI Team</strong></p>
+          <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
+            © 2026 IntelliRev AI Solutions. All rights reserved.
+          </p>
         </div>
-        
-        <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-          © 2026 IntelliRev AI Solutions. All rights reserved.
-        </p>
-      </div>
-    `,
-  };
-  
-  await sgMail.send(msg);
+      `,
+    });
+    
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+    
+    logger.log(`Prospect confirmation sent successfully`);
+  } catch (error) {
+    logger.error("Error sending prospect confirmation:", error);
+    throw error;
+  }
 }
 
 /**
@@ -206,7 +224,7 @@ function getScoreColor(score) {
 exports.sendReplyEmail = onDocumentCreated(
   {
     document: "inquiries/{inquiryId}/replies/{replyId}",
-    secrets: [sendgridApiKey, fromEmail],
+    secrets: [resendApiKey, fromEmail],
   },
   async (event) => {
     const snapshot = event.data;
@@ -228,13 +246,14 @@ exports.sendReplyEmail = onDocumentCreated(
       return;
     }
     
-    sgMail.setApiKey(sendgridApiKey.value());
+    // Initialize Resend
+    const resend = new Resend(resendApiKey.value());
     
     try {
-      const msg = {
-        to: inquiry.email,
+      const data = await resend.emails.send({
         from: fromEmail.value(),
-        subject: `Re: Your inquiry to IntelliRev AI Solutions`,
+        to: inquiry.email,
+        subject: "Re: Your inquiry to IntelliRev AI Solutions",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: white; padding: 30px; border-radius: 8px;">
@@ -257,9 +276,11 @@ exports.sendReplyEmail = onDocumentCreated(
             </div>
           </div>
         `,
-      };
+      });
       
-      await sgMail.send(msg);
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
       
       // Update reply to mark as sent
       await admin.firestore()
@@ -285,7 +306,7 @@ exports.sendReplyEmail = onDocumentCreated(
  */
 exports.exportInquiriesToCSV = require("firebase-functions/v2/https").onRequest(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendApiKey],
     cors: true,
   },
   async (req, res) => {

@@ -19,32 +19,39 @@ cd functions
 npm install
 ```
 
-### 2. Set Up SendGrid Account
+### 2. Set Up Resend Account
 
-1. Go to [SendGrid](https://sendgrid.com/) and create a free account
-2. Verify your sender email/domain
-3. Create an API Key with "Full Access" or "Mail Send" permissions
-4. Copy your API key (starts with `SG.`)
+1. Go to [Resend](https://resend.com) and create a free account
+2. Verify your domain (recommended: `intellirev.ai`) OR verify a single sender email
+3. Create an API Key
+4. Copy your API key (starts with `re_`)
+
+**Why Resend?**
+- ✅ 3,000 free emails/month (vs SendGrid's 3,000 but simpler)
+- ✅ No IP warming required (emails work immediately)
+- ✅ Modern, clean API
+- ✅ Better deliverability for new domains
 
 ### 3. Set Firebase Secrets
 
 Run these commands in your project root:
 
 ```bash
-# Set SendGrid API Key
-firebase functions:secrets:set SENDGRID_API_KEY
+# Set Resend API Key
+firebase functions:secrets:set RESEND_API_KEY
 
 # Set your admin email (where notifications will be sent)
 firebase functions:secrets:set ADMIN_EMAIL
 
-# Set the "from" email address (must be verified in SendGrid)
+# Set the "from" email address (must be verified in Resend)
 firebase functions:secrets:set FROM_EMAIL
 ```
 
 When prompted, enter:
-- `SENDGRID_API_KEY`: Your SendGrid API key (SG.xxx...)
-- `ADMIN_EMAIL`: Your email address to receive notifications
-- `FROM_EMAIL`: The email address that will send emails (e.g., noreply@intellirev.ai)
+- `RESEND_API_KEY`: Your Resend API key (re_xxx...)
+- `ADMIN_EMAIL`: Your email address to receive notifications (e.g., you@gmail.com)
+- `FROM_EMAIL`: The email address that will send emails (must be verified in Resend)
+  - Recommended: `noreply@intellirev.ai` or `hello@intellirev.ai`
 
 ### 4. Deploy Functions
 
@@ -116,9 +123,14 @@ Or check the Firebase Console Functions dashboard.
 ## Troubleshooting
 
 **Emails not sending:**
-- Verify SendGrid API key is correct
-- Check that sender email is verified in SendGrid
+- Verify Resend API key is correct
+- Check that sender email is verified in Resend
 - Review function logs for errors
+- Ensure secrets are set correctly
+
+**"Domain not verified" error:**
+- You need to verify your domain in Resend
+- Or use single sender verification for testing
 
 **Function deployment fails:**
 - Ensure you're in the project directory
@@ -140,13 +152,23 @@ Or check the Firebase Console Functions dashboard.
 
 With ~20 inquiries/day:
 - **Firebase Functions**: Free (within 2M invocations/month limit)
-- **SendGrid**: Free (100 emails/day limit)
+- **Resend**: Free (3,000 emails/month limit)
 - **Total**: $0/month
+
+## Migration from SendGrid
+
+If you were previously using SendGrid:
+1. Update `package.json`: Replace `@sendgrid/mail` with `resend`
+2. Update secrets: Change `SENDGRID_API_KEY` to `RESEND_API_KEY`
+3. Redeploy functions
+4. No other changes needed!
 
 ## Support
 
 For issues or questions:
 1. Check Firebase Functions logs
-2. Review SendGrid email activity
+2. Review Resend dashboard for email activity
 3. Test with Firebase Emulator Suite
 4. Check Firestore security rules
+
+**Resend Documentation:** https://resend.com/docs
