@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import Navbar from './components/Navbar';
-import ConcentricHero from './components/ConcentricHero';
-import ServicesSection from './components/ServicesSection';
-import ProjectGallery from './components/ProjectGallery';
-import Testimonials from './components/Testimonials';
-import FAQSection from './components/FAQSection';
-import ContactSection from './components/ContactSection';
-import AdminLogin from './components/AdminLogin';
-import AdminDashboard from './components/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/layout/Navbar';
+import ConcentricHero from './components/landing/ConcentricHero';
+import ServicesSection from './components/landing/ServicesSection';
+import ProjectGallery from './components/landing/ProjectGallery';
+import Testimonials from './components/landing/Testimonials';
+import FAQSection from './components/landing/FAQSection';
+import ContactSection from './components/landing/ContactSection';
+import AdminLogin from './components/admin/AdminLogin';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProtectedRoute from './components/admin/ProtectedRoute';
 
 const LandingPage = () => {
     const { scrollYProgress } = useScroll();

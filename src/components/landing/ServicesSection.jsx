@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Zap, Search, PenTool, Database, Cloud, Lock, Cpu } from 'lucide-react';
-import { useCMS } from '../hooks/useCMS';
+import { useCMS } from '../../hooks/useCMS';
 
 const iconMap = {
     MessageSquare, Zap, Search, PenTool, Database, Cloud, Lock, Cpu

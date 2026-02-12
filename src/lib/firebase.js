@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCz5PI_77ltxEJruTGZyFQ57Tpwx0SlejM",
-    authDomain: "antigravity-portfolio-999.firebaseapp.com",
-    projectId: "antigravity-portfolio-999",
-    storageBucket: "antigravity-portfolio-999.firebasestorage.app",
-    messagingSenderId: "797613052833",
-    appId: "1:797613052833:web:cf881ccb6dacb60b0131e0"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

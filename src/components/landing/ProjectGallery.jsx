@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useCMS } from '../hooks/useCMS';
+import { useCMS } from '../../hooks/useCMS';
 
 const defaultProjects = [
     {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
-import { useCMS } from '../hooks/useCMS';
+import { useCMS } from '../../hooks/useCMS';
 
 const defaultFAQs = [
     {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../lib/firebase';
+import { auth, db } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FileText, UserCircle, LogOut, Plus, Settings, X, Trash2, Edit2, Mail } from 'lucide-react';
-import { useCMS } from '../hooks/useCMS';
+import { useCMS } from '../../hooks/useCMS';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('services');

@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build output
 dist/
@@ -31,3 +30,7 @@ npm-debug.log*
 # Temporary files
 temp_backup/
 *.tmp
+
+# Image optimization artifacts
+public/optimized/
+public/original-backups/

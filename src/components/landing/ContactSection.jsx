@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Calendar } from 'lucide-react';
 import { doc, onSnapshot, addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../../lib/firebase';
 
 const ContactSection = () => {
     const [contactInfo, setContactInfo] = useState({
