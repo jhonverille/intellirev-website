@@ -52,9 +52,17 @@ service cloud.firestore {
       allow create: if isValidInquiry();
       // Only authenticated users can read/update/delete
       allow read: if isAuthenticated();
-      // Allow authenticated users to update status field
+      // Allow authenticated users to update status field and leadScore
       allow update: if isAuthenticated();
       allow delete: if isAuthenticated();
+      
+      // Replies subcollection - only admins can read/write
+      match /replies/{replyId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update: if isAuthenticated();
+        allow delete: if isAuthenticated();
+      }
     }
     
     // Deny all other access by default

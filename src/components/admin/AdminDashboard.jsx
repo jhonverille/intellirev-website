@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, UserCircle, LogOut, Plus, Settings, X, Trash2, Edit2, Mail } from 'lucide-react';
+import { LayoutDashboard, FileText, UserCircle, LogOut, Plus, Settings, X, Trash2, Edit2, Mail, MessageSquare, Download, Star } from 'lucide-react';
 import { useCMS } from '../../hooks/useCMS';
 
 const AdminDashboard = () => {
@@ -28,6 +28,16 @@ const AdminDashboard = () => {
     });
     const [saving, setSaving] = useState(false);
 
+    // Reply State
+    const [selectedInquiry, setSelectedInquiry] = useState(null);
+    const [replyMessage, setReplyMessage] = useState('');
+    const [replies, setReplies] = useState({});
+    const [showReplyModal, setShowReplyModal] = useState(false);
+    const [sendingReply, setSendingReply] = useState(false);
+
+    // Export State
+    const [exporting, setExporting] = useState(false);
+
     useEffect(() => {
         const fetchSettings = async () => {
             try {
@@ -44,6 +54,29 @@ const AdminDashboard = () => {
             fetchSettings();
         }
     }, [activeTab]);
+
+    // Fetch replies for selected inquiry
+    useEffect(() => {
+        if (!selectedInquiry) return;
+
+        const repliesQuery = query(
+            collection(db, 'inquiries', selectedInquiry.id, 'replies'),
+            orderBy('createdAt', 'asc')
+        );
+
+        const unsubscribe = onSnapshot(repliesQuery, (snapshot) => {
+            const repliesList = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setReplies(prev => ({
+                ...prev,
+                [selectedInquiry.id]: repliesList
+            }));
+        });
+
+        return () => unsubscribe();
+    }, [selectedInquiry]);
 
     const handleLogout = async () => {
         await signOut(auth);
@@ -95,11 +128,9 @@ const AdminDashboard = () => {
             const collectionRef = collection(db, activeTab);
 
             if (editingId) {
-                // Update existing
                 const docRef = doc(db, activeTab, editingId);
                 await updateDoc(docRef, formData);
             } else {
-                // Create new
                 await addDoc(collectionRef, formData);
             }
             setIsModalOpen(false);
@@ -123,6 +154,91 @@ const AdminDashboard = () => {
             console.error("❌ Error updating inquiry status:", error);
             alert(`Failed to update status: ${error.message}`);
         }
+    };
+
+    // Reply Handlers
+    const handleOpenReply = (inquiry) => {
+        setSelectedInquiry(inquiry);
+        setReplyMessage('');
+        setShowReplyModal(true);
+    };
+
+    const handleSendReply = async (e) => {
+        e.preventDefault();
+        if (!replyMessage.trim() || !selectedInquiry) return;
+
+        setSendingReply(true);
+        try {
+            await addDoc(collection(db, 'inquiries', selectedInquiry.id, 'replies'), {
+                message: replyMessage,
+                createdAt: new Date(),
+                sentBy: auth.currentUser.email,
+                emailSent: false
+            });
+            
+            setReplyMessage('');
+            alert('Reply saved and email sent!');
+        } catch (error) {
+            console.error("Error sending reply:", error);
+            alert('Failed to send reply: ' + error.message);
+        } finally {
+            setSendingReply(false);
+        }
+    };
+
+    // Export to CSV
+    const handleExportCSV = () => {
+        setExporting(true);
+        try {
+            const sortedInquiries = [...inquiries].sort((a, b) => {
+                return (b.leadScore || 0) - (a.leadScore || 0);
+            });
+
+            let csv = "Name,Email,Message,Status,Lead Score,Created At\n";
+            
+            sortedInquiries.forEach((inquiry) => {
+                const createdAt = inquiry.createdAt ? 
+                    new Date(inquiry.createdAt.seconds * 1000).toLocaleDateString() : '';
+                
+                csv += `"${escapeCsv(inquiry.name || '')}",`;
+                csv += `"${escapeCsv(inquiry.email || '')}",`;
+                csv += `"${escapeCsv(inquiry.message || '')}",`;
+                csv += `"${escapeCsv(inquiry.status || 'new')}",`;
+                csv += `${inquiry.leadScore || 0},`;
+                csv += `"${createdAt}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `inquiries-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+            alert('Failed to export CSV: ' + error.message);
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const escapeCsv = (value) => {
+        if (value === null || value === undefined) return '';
+        const str = String(value);
+        if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+            return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+    };
+
+    // Get lead score color and label
+    const getLeadScoreInfo = (score) => {
+        if (score >= 80) return { color: 'bg-red-500', label: '🔥 HOT', textColor: 'text-red-500' };
+        if (score >= 50) return { color: 'bg-orange-500', label: '🟡 WARM', textColor: 'text-orange-500' };
+        return { color: 'bg-gray-500', label: '🔵 COLD', textColor: 'text-gray-500' };
     };
 
     // Dynamic Form Fields based on Tab
@@ -330,6 +446,16 @@ const AdminDashboard = () => {
                             Add Entry
                         </button>
                     )}
+                    {activeTab === 'inquiries' && inquiries?.length > 0 && (
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={exporting}
+                            className="flex items-center gap-2 px-6 py-3 bg-green-500/20 text-green-500 font-bold text-xs uppercase tracking-widest rounded-full hover:bg-green-500 hover:text-black transition-all"
+                        >
+                            <Download size={16} />
+                            {exporting ? 'Exporting...' : 'Export CSV'}
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
@@ -398,49 +524,75 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     ))}
-                    {activeTab === 'inquiries' && inquiries?.map(inquiry => (
-                        <div key={inquiry.id} className="glass p-6 rounded-2xl border-white/5 space-y-4">
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="font-bold uppercase tracking-tight">{inquiry.name}</h3>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${inquiry.status === 'new' ? 'bg-orange-500/20 text-orange-500' :
-                                            inquiry.status === 'contacted' ? 'bg-blue-500/20 text-blue-500' :
-                                                'bg-gray-500/20 text-gray-500'
-                                            }`}>
-                                            {inquiry.status || 'new'}
-                                        </span>
+                    {activeTab === 'inquiries' && inquiries?.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0)).map(inquiry => {
+                        const scoreInfo = getLeadScoreInfo(inquiry.leadScore || 0);
+                        const inquiryReplies = replies[inquiry.id] || [];
+                        
+                        return (
+                            <div key={inquiry.id} className="glass p-6 rounded-2xl border-white/5 space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                            <h3 className="font-bold uppercase tracking-tight">{inquiry.name}</h3>
+                                            {/* Status Badge */}
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${inquiry.status === 'new' ? 'bg-orange-500/20 text-orange-500' :
+                                                inquiry.status === 'contacted' ? 'bg-blue-500/20 text-blue-500' :
+                                                    'bg-gray-500/20 text-gray-500'
+                                                }`}>
+                                                {inquiry.status || 'new'}
+                                            </span>
+                                            {/* Lead Score Badge */}
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${scoreInfo.color}/20 ${scoreInfo.textColor} flex items-center gap-1`}>
+                                                <Star size={10} />
+                                                {scoreInfo.label} ({inquiry.leadScore || 0}/100)
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-500">{inquiry.email}</p>
+                                        <p className="text-sm text-gray-400 mt-3 leading-relaxed">{inquiry.message}</p>
+                                        {inquiry.createdAt && (
+                                            <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest">
+                                                {new Date(inquiry.createdAt.seconds * 1000).toLocaleDateString()}
+                                            </p>
+                                        )}
+                                        {/* Reply Count */}
+                                        {inquiryReplies.length > 0 && (
+                                            <p className="text-xs text-green-500 mt-2 flex items-center gap-1">
+                                                <MessageSquare size={12} />
+                                                {inquiryReplies.length} reply{inquiryReplies.length !== 1 ? 'ies' : 'y'}
+                                            </p>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-gray-500">{inquiry.email}</p>
-                                    <p className="text-sm text-gray-400 mt-3 leading-relaxed">{inquiry.message}</p>
-                                    {inquiry.createdAt && (
-                                        <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest">
-                                            {new Date(inquiry.createdAt.seconds * 1000).toLocaleDateString()}
-                                        </p>
-                                    )}
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={() => handleOpenReply(inquiry)} 
+                                            className="text-xs uppercase font-bold text-blue-500/70 hover:text-blue-500 flex items-center gap-2"
+                                        >
+                                            <MessageSquare size={14} /> Reply
+                                        </button>
+                                        <button onClick={() => handleDelete('inquiries', inquiry.id)} className="text-xs uppercase font-bold text-red-500/50 hover:text-red-500 flex items-center gap-2">
+                                            <Trash2 size={14} /> Delete
+                                        </button>
+                                    </div>
                                 </div>
-                                <button onClick={() => handleDelete('inquiries', inquiry.id)} className="text-xs uppercase font-bold text-red-500/50 hover:text-red-500 flex items-center gap-2">
-                                    <Trash2 size={14} /> Delete
-                                </button>
+                                <div className="flex gap-2 pt-2 border-t border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleUpdateInquiryStatus(inquiry.id, 'contacted')}
+                                        className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all cursor-pointer relative z-10"
+                                    >
+                                        Mark Contacted
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleUpdateInquiryStatus(inquiry.id, 'closed')}
+                                        className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-black transition-all cursor-pointer relative z-10"
+                                    >
+                                        Mark Closed
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex gap-2 pt-2 border-t border-white/5">
-                                <button
-                                    type="button"
-                                    onClick={() => handleUpdateInquiryStatus(inquiry.id, 'contacted')}
-                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all cursor-pointer relative z-10"
-                                >
-                                    Mark Contacted
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleUpdateInquiryStatus(inquiry.id, 'closed')}
-                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-black transition-all cursor-pointer relative z-10"
-                                >
-                                    Mark Closed
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
 
                     {/* Contact Settings Form */}
                     {activeTab === 'contact' && (
@@ -527,6 +679,80 @@ const AdminDashboard = () => {
                                         className="flex-1 px-6 py-3 bg-orange-500 text-black font-bold uppercase tracking-widest rounded-full hover:bg-orange-600 transition-all"
                                     >
                                         {saving ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* REPLY MODAL */}
+                {showReplyModal && selectedInquiry && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+                        <div className="glass w-full max-w-2xl rounded-3xl border border-white/10 p-8 relative max-h-[90vh] overflow-y-auto">
+                            <button
+                                onClick={() => setShowReplyModal(false)}
+                                className="absolute top-6 right-6 text-gray-500 hover:text-white"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <h2 className="text-2xl font-black uppercase italic mb-6">
+                                Reply to {selectedInquiry.name}
+                            </h2>
+
+                            {/* Original Message */}
+                            <div className="bg-white/5 p-4 rounded-xl mb-6">
+                                <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Original Message</p>
+                                <p className="text-sm text-gray-300">{selectedInquiry.message}</p>
+                            </div>
+
+                            {/* Previous Replies */}
+                            {replies[selectedInquiry.id]?.length > 0 && (
+                                <div className="space-y-3 mb-6">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest">Previous Replies</p>
+                                    {replies[selectedInquiry.id].map((reply) => (
+                                        <div key={reply.id} className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                                            <p className="text-sm text-gray-300">{reply.message}</p>
+                                            <p className="text-[10px] text-gray-500 mt-2">
+                                                {reply.createdAt?.seconds ? 
+                                                    new Date(reply.createdAt.seconds * 1000).toLocaleString() : 
+                                                    'Just now'
+                                                }
+                                                {reply.emailSent && ' ✓ Email sent'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Reply Form */}
+                            <form onSubmit={handleSendReply} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-gray-500">Your Reply</label>
+                                    <textarea
+                                        value={replyMessage}
+                                        onChange={(e) => setReplyMessage(e.target.value)}
+                                        className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-32"
+                                        placeholder="Type your reply here..."
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReplyModal(false)}
+                                        className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-white/5 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={sendingReply || !replyMessage.trim()}
+                                        className="flex-1 px-6 py-3 bg-orange-500 text-black font-bold uppercase tracking-widest rounded-full hover:bg-orange-600 transition-all disabled:opacity-50"
+                                    >
+                                        {sendingReply ? 'Sending...' : 'Send Reply'}
                                     </button>
                                 </div>
                             </form>
