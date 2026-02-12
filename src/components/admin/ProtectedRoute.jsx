@@ -5,6 +5,7 @@ import { auth } from '../../lib/firebase';
 const ProtectedRoute = ({ children }) => {
     const [user, loading] = useAuthState(auth);
 
+    // Show loading spinner while checking authentication
     if (loading) {
         return (
             <div className="min-h-screen bg-[#000000] flex items-center justify-center">
@@ -13,10 +14,13 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
+    // Redirect to login if not authenticated
+    // replace: true prevents user from going back to protected route using browser back button
     if (!user) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/login" replace />;
     }
 
+    // User is authenticated, render protected content
     return children;
 };
 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { useNavigate } from 'react-router-dom';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { Lock } from 'lucide-react';
 
 const AdminLogin = () => {
@@ -9,6 +10,14 @@ const AdminLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [user, loading] = useAuthState(auth);
+
+    // Redirect to admin if already logged in
+    useEffect(() => {
+        if (user) {
+            navigate('/admin', { replace: true });
+        }
+    }, [user, navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -19,6 +28,15 @@ const AdminLogin = () => {
             setError('Invalid credentials. Access denied.');
         }
     };
+
+    // Show loading state while checking auth
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+                <div className="w-10 h-10 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#000000] flex items-center justify-center p-6">

@@ -112,6 +112,19 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleUpdateInquiryStatus = async (inquiryId, newStatus) => {
+        console.log('handleUpdateInquiryStatus called:', { inquiryId, newStatus });
+        try {
+            const docRef = doc(db, 'inquiries', inquiryId);
+            console.log('Updating document...');
+            await updateDoc(docRef, { status: newStatus });
+            console.log(`✅ Inquiry ${inquiryId} marked as ${newStatus}`);
+        } catch (error) {
+            console.error("❌ Error updating inquiry status:", error);
+            alert(`Failed to update status: ${error.message}`);
+        }
+    };
+
     // Dynamic Form Fields based on Tab
     const renderFormFields = () => {
         if (activeTab === 'services') {
@@ -412,14 +425,16 @@ const AdminDashboard = () => {
                             </div>
                             <div className="flex gap-2 pt-2 border-t border-white/5">
                                 <button
+                                    type="button"
                                     onClick={() => handleUpdateInquiryStatus(inquiry.id, 'contacted')}
-                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all"
+                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all cursor-pointer relative z-10"
                                 >
                                     Mark Contacted
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => handleUpdateInquiryStatus(inquiry.id, 'closed')}
-                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-black transition-all"
+                                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-black transition-all cursor-pointer relative z-10"
                                 >
                                     Mark Closed
                                 </button>
