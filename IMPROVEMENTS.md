@@ -186,9 +186,9 @@ TOTAL: 859 KB + 131 KB WebP
 ## Repository Cleanup ✅
 
 ### 7. Removed Unrelated Project
-**Removed**: `antigravity-awesome-skills/` directory
+**Removed**: `awesome-skills/` directory
 
-**Action**: Moved to `C:\Users\jhonv\OneDrive\Documents\antigravity-awesome-skills\`
+**Action**: Moved to `C:\Users\jhonv\OneDrive\Documents\awesome-skills\`
 
 **Reason**: 
 - Completely separate project (AI skills library)

@@ -23,7 +23,7 @@ A modern, responsive website for IntelliRev AI Solutions built with React, Vite,
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd antigravity-intellirev-website
+   cd intellirev-website
    ```
 
 2. **Install dependencies**
@@ -78,7 +78,7 @@ firebase deploy --only firestore:rules
 ## Project Structure
 
 ```
-antigravity-intellirev-website/
+intellirev-website/
 ├── src/
 │   ├── components/     # React components
 │   ├── data/          # Static data and content
