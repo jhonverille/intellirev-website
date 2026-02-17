@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
 import { getFirestore, enableIndexedDbPersistence, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -17,11 +17,13 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize services
 export const auth = getAuth(app);
+// Set session persistence (logs out when tab/window is closed)
+setPersistence(auth, browserSessionPersistence);
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Enable offline persistence for better performance
-// This caches data locally so the app works offline
 if (typeof window !== 'undefined') {
     enableIndexedDbPersistence(db).catch((err) => {
         if (err.code === 'failed-precondition') {
@@ -31,10 +33,5 @@ if (typeof window !== 'undefined') {
         }
     });
 }
-
-// Uncomment to use local emulator for development
-// if (import.meta.env.DEV) {
-//     connectFirestoreEmulator(db, 'localhost', 8080);
-// }
 
 export default app;

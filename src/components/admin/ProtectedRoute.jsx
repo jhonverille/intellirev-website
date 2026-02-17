@@ -14,13 +14,14 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    // Redirect to login if not authenticated
-    // replace: true prevents user from going back to protected route using browser back button
-    if (!user) {
+    // Redirect to login if not authenticated or session not verified
+    const isSessionVerified = sessionStorage.getItem('adminSessionVerified') === 'true';
+
+    if (!user || !isSessionVerified) {
         return <Navigate to="/login" replace />;
     }
 
-    // User is authenticated, render protected content
+    // User is authenticated and session is verified, render protected content
     return children;
 };
 

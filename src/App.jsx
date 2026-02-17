@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { motion, useScroll, useSpring } from 'framer-motion';
 import Navbar from './components/layout/Navbar';
 import ConcentricHero from './components/landing/ConcentricHero';
 import ServicesSection from './components/landing/ServicesSection';
@@ -13,21 +12,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 const LandingPage = () => {
-    const { scrollYProgress } = useScroll();
-    const scaleX = useSpring(scrollYProgress, {
-        stiffness: 100,
-        damping: 30,
-        restDelta: 0.001
-    });
-
     return (
         <div className="relative overflow-hidden bg-[#000000]">
-            {/* Scroll Progress Bar */}
-            <motion.div
-                className="fixed top-0 left-0 right-0 h-1 bg-orange-500 origin-left z-[100]"
-                style={{ scaleX }}
-            />
-
             {/* Background Ambience */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
                 <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-orange-600/5 blur-[120px] rounded-full" />

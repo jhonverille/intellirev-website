@@ -12,17 +12,18 @@ const AdminLogin = () => {
     const navigate = useNavigate();
     const [user, loading] = useAuthState(auth);
 
-    // Redirect to admin if already logged in
+    // Force fresh login every time - removed auto-redirect
     useEffect(() => {
-        if (user) {
-            navigate('/admin', { replace: true });
-        }
-    }, [user, navigate]);
+        // Clear session verification on mount to ensure interactive login
+        sessionStorage.removeItem('adminSessionVerified');
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            // Mark session as verified for the protected route
+            sessionStorage.setItem('adminSessionVerified', 'true');
             navigate('/admin');
         } catch (err) {
             setError('Invalid credentials. Access denied.');
