@@ -49,8 +49,23 @@ const ContactSection = () => {
     }, []);
 
     return (
-        <section id="contact" className="py-32 px-6 bg-[#050505]">
-            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
+        <section id="contact" className="relative py-32 px-6 overflow-hidden">
+            {/* Video Background */}
+            <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 mix-blend-overlay"
+            >
+                <source src="/contact-bg.mp4" type="video/mp4" />
+            </video>
+
+            {/* Background Overlay for depth */}
+            <div className="absolute inset-0 bg-[#050505]/80 z-1" />
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#000000] to-transparent z-1" />
+
+            <div className="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
                 <div className="flex-1 space-y-12">
                     <div className="space-y-4">
                         <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">
