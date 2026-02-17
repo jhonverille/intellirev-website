@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../lib/firebase';
+import { auth, db, storage } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, UserCircle, LogOut, Plus, Settings, X, Trash2, Edit2, Mail, MessageSquare, Download, Star } from 'lucide-react';
+import { LayoutDashboard, FileText, UserCircle, LogOut, Plus, Settings, X, Trash2, Edit2, Mail, MessageSquare, Download, Star, Upload, ImageIcon } from 'lucide-react';
 import { useCMS } from '../../hooks/useCMS';
 
 const AdminDashboard = () => {
@@ -19,6 +20,8 @@ const AdminDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({});
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // Contact Settings State
     const [contactSettings, setContactSettings] = useState({
@@ -101,12 +104,14 @@ const AdminDashboard = () => {
     const handleAddNew = () => {
         setEditingId(null);
         setFormData({});
+        setSelectedFile(null);
         setIsModalOpen(true);
     };
 
     const handleEdit = (item) => {
         setEditingId(item.id);
         setFormData(item);
+        setSelectedFile(null);
         setIsModalOpen(true);
     };
 
@@ -125,21 +130,39 @@ const AdminDashboard = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            let finalData = { ...formData };
+
+            // Handle Image Upload for Testimonials (and potentially Projects later)
+            if (selectedFile) {
+                setUploadingImage(true);
+                const fileExt = selectedFile.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const storageRef = ref(storage, `${activeTab}/${fileName}`);
+
+                const snapshot = await uploadBytes(storageRef, selectedFile);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                finalData.img = downloadURL; // Use 'img' to match existing Testimonials.jsx logic
+                setUploadingImage(false);
+            }
+
             const collectionRef = collection(db, activeTab);
 
             if (editingId) {
                 const docRef = doc(db, activeTab, editingId);
-                await updateDoc(docRef, formData);
+                await updateDoc(docRef, finalData);
             } else {
-                await addDoc(collectionRef, formData);
+                await addDoc(collectionRef, finalData);
             }
             setIsModalOpen(false);
             setFormData({});
+            setSelectedFile(null);
         } catch (error) {
             console.error("Error saving entry:", error);
-            alert("Failed to save entry.");
+            alert("Failed to save entry: " + error.message);
         } finally {
             setSaving(false);
+            setUploadingImage(false);
         }
     };
 
@@ -175,7 +198,7 @@ const AdminDashboard = () => {
                 sentBy: auth.currentUser.email,
                 emailSent: false
             });
-            
+
             setReplyMessage('');
             alert('Reply saved and email sent!');
         } catch (error) {
@@ -195,11 +218,11 @@ const AdminDashboard = () => {
             });
 
             let csv = "Name,Email,Message,Status,Lead Score,Created At\n";
-            
+
             sortedInquiries.forEach((inquiry) => {
-                const createdAt = inquiry.createdAt ? 
+                const createdAt = inquiry.createdAt ?
                     new Date(inquiry.createdAt.seconds * 1000).toLocaleDateString() : '';
-                
+
                 csv += `"${escapeCsv(inquiry.name || '')}",`;
                 csv += `"${escapeCsv(inquiry.email || '')}",`;
                 csv += `"${escapeCsv(inquiry.message || '')}",`;
@@ -324,6 +347,7 @@ const AdminDashboard = () => {
                             value={formData.name || ''}
                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                             className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                            required
                         />
                     </div>
                     <div className="space-y-2">
@@ -332,6 +356,7 @@ const AdminDashboard = () => {
                             value={formData.role || ''}
                             onChange={e => setFormData({ ...formData, role: e.target.value })}
                             className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                            required
                         />
                     </div>
                     <div className="space-y-2">
@@ -340,7 +365,34 @@ const AdminDashboard = () => {
                             value={formData.text || ''}
                             onChange={e => setFormData({ ...formData, text: e.target.value })}
                             className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-32"
+                            required
                         />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase text-gray-500">Client Picture</label>
+                        <div className="flex items-center gap-4">
+                            {(selectedFile || formData.img) && (
+                                <img
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : formData.img}
+                                    className="w-16 h-16 rounded-full object-cover border-2 border-orange-500"
+                                    alt="Preview"
+                                />
+                            )}
+                            <label className="flex-1 cursor-pointer">
+                                <div className="w-full bg-white/5 border border-dashed border-white/20 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-white/10 transition-all gap-2">
+                                    <Upload size={20} className="text-gray-500" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                        {selectedFile ? selectedFile.name : 'Upload Client Photo'}
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                                />
+                            </label>
+                        </div>
                     </div>
                 </>
             );
@@ -527,7 +579,7 @@ const AdminDashboard = () => {
                     {activeTab === 'inquiries' && inquiries?.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0)).map(inquiry => {
                         const scoreInfo = getLeadScoreInfo(inquiry.leadScore || 0);
                         const inquiryReplies = replies[inquiry.id] || [];
-                        
+
                         return (
                             <div key={inquiry.id} className="glass p-6 rounded-2xl border-white/5 space-y-4">
                                 <div className="flex justify-between items-start">
@@ -563,8 +615,8 @@ const AdminDashboard = () => {
                                         )}
                                     </div>
                                     <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleOpenReply(inquiry)} 
+                                        <button
+                                            onClick={() => handleOpenReply(inquiry)}
                                             className="text-xs uppercase font-bold text-blue-500/70 hover:text-blue-500 flex items-center gap-2"
                                         >
                                             <MessageSquare size={14} /> Reply
@@ -715,8 +767,8 @@ const AdminDashboard = () => {
                                         <div key={reply.id} className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
                                             <p className="text-sm text-gray-300">{reply.message}</p>
                                             <p className="text-[10px] text-gray-500 mt-2">
-                                                {reply.createdAt?.seconds ? 
-                                                    new Date(reply.createdAt.seconds * 1000).toLocaleString() : 
+                                                {reply.createdAt?.seconds ?
+                                                    new Date(reply.createdAt.seconds * 1000).toLocaleString() :
                                                     'Just now'
                                                 }
                                                 {reply.emailSent && ' ✓ Email sent'}
