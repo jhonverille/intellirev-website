@@ -41,8 +41,24 @@ const ServicesSection = () => {
     const displayServices = cmsServices && cmsServices.length > 0 ? cmsServices : defaultServices;
 
     return (
-        <section id="services" className="py-32 px-6">
-            <div className="max-w-7xl mx-auto">
+        <section id="services" className="relative py-32 px-6 overflow-hidden">
+            {/* Video Background */}
+            <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover z-0 opacity-30"
+            >
+                <source src="/services-bg.mp4" type="video/mp4" />
+            </video>
+
+            {/* Background Overlays */}
+            <div className="absolute inset-0 bg-black/60 z-1" />
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black to-transparent z-1" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent z-1" />
+
+            <div className="relative z-10 max-w-7xl mx-auto">
                 <div className="mb-20 space-y-4">
                     <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
                         Our <span className="text-orange-500">Capabilities</span>
