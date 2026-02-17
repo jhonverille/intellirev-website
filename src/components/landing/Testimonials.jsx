@@ -14,6 +14,18 @@ const defaultTestimonials = [
         role: "Ops Director, Aurora",
         text: "The 24/7 AI Chatbot implementation was flawless. It handles 80% of our support volume with higher satisfaction ratings than our human agents.",
         img: "https://i.pravatar.cc/150?u=sarah"
+    },
+    {
+        name: "Michael Ross",
+        role: "Founder, Specter Systems",
+        text: "The speed of integration was mind-blowing. We went from manual data entry to a fully autonomous pipeline in less than two weeks.",
+        img: "https://i.pravatar.cc/150?u=michael"
+    },
+    {
+        name: "Elena Vance",
+        role: "Technical Lead, Black Mesa",
+        text: "Their multi-agent orchestration is years ahead of the competition. It's the engine driving our entire research division now.",
+        img: "https://i.pravatar.cc/150?u=elena"
     }
 ];
 
@@ -21,50 +33,65 @@ const Testimonials = () => {
     const { data: cmsTestimonials, loading } = useCMS('testimonials');
     const displayTestimonials = cmsTestimonials && cmsTestimonials.length > 0 ? cmsTestimonials : defaultTestimonials;
 
-    return (
-        <section id="testimonials" className="py-32 px-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-10">
-                    <div className="space-y-4">
-                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-                            Client <span className="text-orange-500">Intelligence</span>
-                        </h2>
-                        <p className="text-gray-500 max-w-xl text-lg font-medium">
-                            Real results from global partners who have integrated our autonomous systems.
-                        </p>
-                    </div>
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 cursor-pointer transition-all">←</div>
-                        <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 cursor-pointer transition-all">→</div>
-                    </div>
-                </div>
+    // Create a double list for seamless looping
+    const infiniteTestimonials = [...displayTestimonials, ...displayTestimonials];
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {displayTestimonials.map((t, i) => (
-                        <motion.div
-                            key={t.id || i}
-                            initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            className="glass p-12 rounded-[40px] space-y-8"
+    return (
+        <section id="testimonials" className="py-32 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-6 mb-20">
+                <div className="space-y-4">
+                    <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+                        Client <span className="text-orange-500">Intelligence</span>
+                    </h2>
+                    <p className="text-gray-500 max-w-xl text-lg font-medium">
+                        Real results from global partners who have integrated our autonomous systems.
+                    </p>
+                </div>
+            </div>
+
+            {/* Infinite Scroll Container */}
+            <div className="flex relative">
+                <motion.div
+                    className="flex gap-8 whitespace-nowrap"
+                    animate={{
+                        x: ["0%", "-50%"],
+                    }}
+                    transition={{
+                        x: {
+                            repeat: Infinity,
+                            repeatType: "loop",
+                            duration: 30, // Adjust speed here
+                            ease: "linear",
+                        },
+                    }}
+                    style={{ width: "max-content" }}
+                >
+                    {infiniteTestimonials.map((t, i) => (
+                        <div
+                            key={`${t.id || i}-${i}`}
+                            className="glass p-10 md:p-12 rounded-[40px] space-y-8 inline-block w-[350px] md:w-[500px] whitespace-normal"
                         >
                             <div className="flex items-center gap-4">
                                 <img
                                     src={t.img || t.imageUrl}
                                     alt={t.name}
-                                    className="w-14 h-14 rounded-full border-2 border-orange-500/50"
+                                    className="w-14 h-14 rounded-full border-2 border-orange-500/50 object-cover"
                                 />
                                 <div>
-                                    <h4 className="font-bold uppercase tracking-tight">{t.name}</h4>
+                                    <h4 className="font-bold uppercase tracking-tight text-white">{t.name}</h4>
                                     <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{t.role}</p>
                                 </div>
                             </div>
-                            <p className="text-xl md:text-2xl font-medium leading-relaxed italic text-gray-300">
+                            <p className="text-lg md:text-xl font-medium leading-relaxed italic text-gray-300">
                                 "{t.text}"
                             </p>
-                        </motion.div>
+                        </div>
                     ))}
-                </div>
+                </motion.div>
+
+                {/* Fade overlays for the sides */}
+                <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#000000] to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#000000] to-transparent z-10 pointer-events-none" />
             </div>
         </section>
     );
