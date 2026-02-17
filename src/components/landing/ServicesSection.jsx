@@ -48,13 +48,13 @@ const ServicesSection = () => {
                 loop
                 muted
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover z-0 opacity-30"
+                className="absolute inset-0 w-full h-full object-cover z-0 opacity-50"
             >
                 <source src="/services-bg.mp4" type="video/mp4" />
             </video>
 
             {/* Background Overlays */}
-            <div className="absolute inset-0 bg-black/60 z-1" />
+            <div className="absolute inset-0 bg-black/40 z-1" />
             <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black to-transparent z-1" />
             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent z-1" />
 
