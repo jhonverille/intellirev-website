@@ -287,15 +287,7 @@ const AdminDashboard = () => {
                             placeholder="Service details..."
                         />
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase text-gray-500">Icon Name (Lucide React)</label>
-                        <input
-                            value={formData.iconName || ''}
-                            onChange={e => setFormData({ ...formData, iconName: e.target.value })}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
-                            placeholder="e.g. MessageSquare, Zap, Cpu"
-                        />
-                    </div>
+
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase text-gray-500">Stats / Tagline</label>
                         <input
