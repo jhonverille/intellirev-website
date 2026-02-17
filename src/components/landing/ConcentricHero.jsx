@@ -6,8 +6,21 @@ const ConcentricHero = () => {
     const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
 
     return (
-        <div className="relative w-full min-h-[800px] pt-32 flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden">
+            {/* Industrial Metal Background */}
+            <div
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-luminosity lg:mix-blend-normal"
+                style={{
+                    backgroundImage: 'url("/metal_bg.png")',
+                    backgroundSize: 'cover',
+                }}
+            >
+                {/* Dark Vignette/Gradient Overlay to ensure text readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-80" />
+                <div className="absolute inset-0 bg-black/40" />
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center z-5">
                 {[...Array(12)].map((_, i) => (
                     <motion.div
                         key={i}
