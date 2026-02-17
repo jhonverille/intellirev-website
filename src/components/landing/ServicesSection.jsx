@@ -1,11 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Zap, Search, PenTool, Database, Cloud, Lock, Cpu } from 'lucide-react';
 import { useCMS } from '../../hooks/useCMS';
-
-const iconMap = {
-    MessageSquare, Zap, Search, PenTool, Database, Cloud, Lock, Cpu
-};
 
 const defaultServices = [
     {
@@ -70,7 +65,6 @@ const ServicesSection = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {displayServices.map((service, i) => {
-                        const IconComponent = iconMap[service.iconName] || MessageSquare;
 
                         return (
                             <motion.div
@@ -81,9 +75,7 @@ const ServicesSection = () => {
                                 viewport={{ once: true }}
                                 className="glass p-8 rounded-3xl orange-glow-hover transition-all group"
                             >
-                                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
-                                    <IconComponent className="text-orange-500" />
-                                </div>
+
                                 <h3 className="text-xl font-bold mb-4 tracking-tight uppercase">{service.title}</h3>
                                 <p className="text-gray-500 text-sm font-medium mb-10 leading-relaxed">
                                     {service.desc}
