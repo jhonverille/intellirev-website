@@ -4,94 +4,46 @@ import { PopupModal } from 'react-calendly';
 
 const ConcentricHero = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-    const handleMouseMove = (e) => {
-        const { clientX, clientY } = e;
-        const x = (clientX - window.innerWidth / 2) / 50;
-        const y = (clientY - window.innerHeight / 2) / 50;
-        setMousePos({ x, y });
-    };
 
     return (
-        <div
-            onMouseMove={handleMouseMove}
-            className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden bg-black"
-        >
-            {/* Premium Background Layer */}
+        <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden">
+            {/* Background Layer */}
             <div
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-30 mix-blend-overlay grayscale"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-luminosity"
                 style={{ backgroundImage: 'url("/metal_bg.png")' }}
             >
-                {/* Dynamic Spotlight */}
-                <motion.div
-                    animate={{
-                        background: `radial-gradient(600px circle at ${50 + mousePos.x}% ${50 + mousePos.y}%, rgba(249,115,22,0.15), transparent)`
-                    }}
-                    className="absolute inset-0 z-1"
-                />
-
-                {/* Noise/Grain Overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-screen bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
                 <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
             </div>
 
-            {/* THE ORBITAL CORE */}
-            <motion.div
-                style={{ x: mousePos.x, y: mousePos.y }}
-                className="absolute inset-0 flex items-center justify-center z-[1]"
-            >
-                {/* Glowing Aura */}
-                <div className="absolute w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[120px] animate-pulse" />
+            {/* CONCENTRIC RINGS - HIGH VISIBILITY */}
+            <div className="absolute inset-0 flex items-center justify-center z-[1]">
+                {/* Enhanced Triple Glow Center */}
+                <div className="absolute w-96 h-96 bg-orange-600/20 rounded-full blur-[100px] animate-pulse" />
+                <div className="absolute w-48 h-48 bg-orange-500/40 rounded-full blur-[60px]" />
+                <div className="absolute w-24 h-24 bg-orange-500/60 rounded-full blur-2xl" />
 
-                {[...Array(8)].map((_, i) => (
-                    <div key={i} className="absolute flex items-center justify-center">
-                        {/* The Ring */}
-                        <motion.div
-                            initial={{ rotate: 0 }}
-                            animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
-                            transition={{
-                                duration: 15 + i * 5,
-                                repeat: Infinity,
-                                ease: "linear"
-                            }}
-                            className="absolute border border-orange-500/20 rounded-full"
-                            style={{
-                                width: `${(i + 2) * 120}px`,
-                                height: `${(i + 2) * 120}px`,
-                                borderStyle: i % 3 === 0 ? 'solid' : 'dashed',
-                                borderWidth: i === 0 ? '2px' : '1px',
-                                opacity: 1 - i * 0.1
-                            }}
-                        >
-                            {/* Data Nodes orbiting on the ring */}
-                            {i % 2 === 0 && (
-                                <motion.div
-                                    className="absolute -top-1 left-1/2 w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_15px_#f97316]"
-                                    animate={{ scale: [1, 1.5, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                />
-                            )}
-                        </motion.div>
-                    </div>
-                ))}
-
-                {/* Central Hyper-Core */}
-                <div className="relative flex items-center justify-center">
+                {[...Array(12)].map((_, i) => (
                     <motion.div
+                        key={i}
+                        initial={{ opacity: 0, rotate: 0 }}
                         animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.5, 0.8, 0.5]
+                            opacity: [0.2, 0.5, 0.2],
+                            rotate: 360
                         }}
-                        transition={{ duration: 4, repeat: Infinity }}
-                        className="absolute w-40 h-40 bg-orange-600/30 rounded-full blur-2xl"
+                        transition={{
+                            duration: 12 + i * 3,
+                            repeat: Infinity,
+                            ease: "linear"
+                        }}
+                        className="absolute border border-orange-500/40 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                        style={{
+                            width: `${(i + 1) * 85}px`,
+                            height: `${(i + 1) * 85}px`,
+                            borderStyle: i % 2 === 0 ? 'solid' : 'dashed',
+                        }}
                     />
-                    <div className="w-20 h-20 bg-orange-500 rounded-full shadow-[0_0_60px_rgba(249,115,22,0.8)] border-4 border-white/20 relative z-10 flex items-center justify-center">
-                        <div className="w-10 h-10 bg-black rounded-full animate-ping opacity-20" />
-                    </div>
-                </div>
-            </motion.div>
+                ))}
+            </div>
 
             <div className="relative z-10 text-center space-y-8 px-6">
                 <motion.div
