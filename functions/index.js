@@ -1,6 +1,6 @@
-const {onDocumentCreated} = require("firebase-functions/v2/firestore");
-const {logger} = require("firebase-functions");
-const {defineSecret} = require("firebase-functions/params");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { logger } = require("firebase-functions");
+const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
 
@@ -22,36 +22,25 @@ exports.sendInquiryNotification = onDocumentCreated(
   },
   async (event) => {
     const snapshot = event.data;
-    
+
     if (!snapshot) {
       logger.log("No data associated with the event");
       return;
     }
-    
+
     const inquiry = snapshot.data();
     const inquiryId = event.params.inquiryId;
-    
+
     // Initialize Resend
     const resend = new Resend(resendApiKey.value());
-    
+
     try {
-      // Calculate lead score
-      const leadScore = calculateLeadScore(inquiry);
-      
-      // Update inquiry with lead score
-      await admin.firestore().collection("inquiries").doc(inquiryId).update({
-        leadScore: leadScore,
-        scoredAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      
-      logger.log(`Inquiry ${inquiryId} scored: ${leadScore}`);
-      
       // Send email to admin
-      await sendAdminNotification(resend, inquiry, inquiryId, leadScore);
-      
+      await sendAdminNotification(resend, inquiry, inquiryId);
+
       // Send confirmation to prospect
       await sendProspectConfirmation(resend, inquiry);
-      
+
       logger.log(`Emails sent successfully for inquiry ${inquiryId}`);
     } catch (error) {
       logger.error("Error processing inquiry:", error);
@@ -60,97 +49,73 @@ exports.sendInquiryNotification = onDocumentCreated(
   }
 );
 
-/**
- * Calculate lead score based on inquiry content
- */
-function calculateLeadScore(inquiry) {
-  let score = 0;
-  const message = inquiry.message?.toLowerCase() || "";
-  
-  // Budget indicators (+30 points)
-  if (/\$|budget|cost|price|investment|spending|allocate/i.test(message)) {
-    score += 30;
-  }
-  
-  // Urgency indicators (+25 points)
-  if (/asap|urgent|immediately|this week|deadline|rush|quickly/i.test(message)) {
-    score += 25;
-  }
-  
-  // Company/team size indicators (+20 points)
-  if (/company|team|enterprise|organization|we need|our business|startup/i.test(message)) {
-    score += 20;
-  }
-  
-  // Project scope indicators (+15 points)
-  if (/large|big|multiple|complex|enterprise|scalable|long-term/i.test(message)) {
-    score += 15;
-  }
-  
-  // Specific service mentions (+10 points)
-  if (/automation|ai|machine learning|integration|bot|workflow/i.test(message)) {
-    score += 10;
-  }
-  
-  // Spam/red flags (-10 points)
-  if (/free|cheap|lowest price|just looking|testing/i.test(message)) {
-    score -= 10;
-  }
-  
-  // Ensure score is between 0-100
-  return Math.max(0, Math.min(100, score));
-}
 
 /**
  * Send notification email to admin
  */
-async function sendAdminNotification(resend, inquiry, inquiryId, leadScore) {
-  const priority = leadScore >= 80 ? "🔥 HOT" : leadScore >= 50 ? "🟡 WARM" : "🔵 COLD";
-  
+async function sendAdminNotification(resend, inquiry, inquiryId) {
   try {
     const data = await resend.emails.send({
       from: fromEmail.value(),
       to: adminEmail.value(),
-      subject: `${priority} Lead: ${inquiry.name} - Score: ${leadScore}/100`,
+      subject: `New Opportunity: ${inquiry.name}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
-          <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h2 style="color: #f97316; margin-top: 0;">🎯 New Lead Alert</h2>
-            
-            <div style="background: ${getScoreColor(leadScore)}; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px;">
-              <strong>Lead Score: ${leadScore}/100</strong> - ${priority}
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+              body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background-color: #0d0d0d; color: #ffffff; }
+              .container { max-width: 600px; margin: 20px auto; background: #262626; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+              .header { padding: 40px; background: #1a1a1a; text-align: left; }
+              .content { padding: 40px; }
+              .label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #fb923c; margin-bottom: 8px; display: block; }
+              .value { font-size: 16px; color: #ffffff; margin-bottom: 24px; line-height: 1.6; }
+              .message-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin: 24px 0; }
+              .button { display: inline-block; padding: 16px 32px; background: #ffffff; color: #000000; text-decoration: none; border-radius: 100px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.3s ease; }
+              .footer { padding: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #a3a3a3; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <img src="https://ai.intellirev.space/brand_full.webp" alt="IntelliRev Logo" style="height: 48px; border-radius: 8px;">
+              </div>
+              <div class="content">
+                <span class="label">Incoming Lead</span>
+                <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; color: #ffffff;">New Opportunity</h2>
+                <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px;">
+                  Captured on ${new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'long', timeZone: 'Asia/Manila' }).format(new Date())}
+                </div>
+                
+                <span class="label">Full Name</span>
+                <div class="value">${inquiry.name}</div>
+                
+                <span class="label">Email Address</span>
+                <div class="value">${inquiry.email}</div>
+                
+                <div class="message-box">
+                  <span class="label">Inquiry Message</span>
+                  <div class="value" style="margin-bottom: 0; font-style: italic;">"${inquiry.message}"</div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                  <a href="https://ai.intellirev.space/admin" class="button">Access Command Center</a>
+                </div>
+              </div>
+              <div class="footer">
+                INTELLIREV AI SOLUTIONS — AUTOMATED LEAD MANAGEMENT
+              </div>
             </div>
-            
-            <div style="margin-bottom: 20px;">
-              <p><strong>Name:</strong> ${inquiry.name}</p>
-              <p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p>
-              <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-            </div>
-            
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-              <p style="margin: 0;"><strong>Message:</strong></p>
-              <p style="margin: 10px 0 0 0; font-style: italic;">${inquiry.message}</p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-              <a href="https://ai.intellirev.space/admin" 
-                 style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                View in Dashboard
-              </a>
-            </div>
-          </div>
-          
-          <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-            IntelliRev AI Solutions - Lead Management System
-          </p>
-        </div>
+          </body>
+        </html>
       `,
     });
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
-    
+
     logger.log(`Admin notification sent successfully`);
   } catch (error) {
     logger.error("Error sending admin notification:", error);
@@ -166,42 +131,61 @@ async function sendProspectConfirmation(resend, inquiry) {
     const data = await resend.emails.send({
       from: fromEmail.value(),
       to: inquiry.email,
-      subject: "Thank you for your inquiry - IntelliRev AI Solutions",
+      subject: "Inquiry Received — IntelliRev AI Solutions",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
-          <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h2 style="color: #f97316; margin: 0;">Thank You, ${inquiry.name}!</h2>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+              body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background-color: #0d0d0d; color: #ffffff; }
+              .container { max-width: 600px; margin: 20px auto; background: #262626; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+              .header { padding: 40px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
+              .content { padding: 40px; }
+              .label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #fb923c; margin-bottom: 8px; display: block; }
+              .headline { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 24px; color: #ffffff; }
+              .text { font-size: 16px; color: #d4d4d4; line-height: 1.6; margin-bottom: 32px; }
+              .action-card { background: rgba(249, 115, 22, 0.05); border-left: 4px solid #f97316; border-radius: 4px 16px 16px 4px; padding: 24px; margin-bottom: 32px; }
+              .button { display: inline-block; padding: 16px 32px; background: #f97316; color: #ffffff; text-decoration: none; border-radius: 100px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.3s ease; }
+              .footer { padding: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #525252; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                 <img src="https://ai.intellirev.space/brand_full.webp" alt="IntelliRev Logo" style="height: 48px; border-radius: 8px;">
+              </div>
+              <div class="content">
+                <span class="label">Confirmed</span>
+                <div class="headline">We're on it, ${inquiry.name}.</div>
+                <div class="text">
+                  Your inquiry regarding AI solutions has been successfully captured. Our specialists are currently reviewing your request and will reach out with a technical strategy within 24-48 hours.
+                </div>
+                
+                <div class="action-card">
+                  <span class="label" style="color: #ffffff;">Quick Action</span>
+                  <div class="text" style="color: #ffffff; margin-bottom: 16px; font-size: 14px;">Want to move faster? Use the link below to sync directly with our lead automation engineer.</div>
+                  <a href="https://calendly.com/intellirev" class="button">Sync Calendars</a>
+                </div>
+
+                <div class="text" style="font-size: 14px;">
+                  Stay ahead,<br>
+                  <strong style="color: #ffffff;">IntelliRev AI Team</strong>
+                </div>
+              </div>
+              <div class="footer">
+                © 2026 INTELLIREV AI SOLUTIONS — THE FUTURE OF AUTOMATION
+              </div>
             </div>
-            
-            <p>We've received your inquiry and our team is reviewing it. We'll get back to you within 24-48 hours.</p>
-            
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-              <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong></p>
-              <p style="margin: 0; font-style: italic; color: #666;">${inquiry.message}</p>
-            </div>
-            
-            <p>In the meantime, feel free to:</p>
-            <ul>
-              <li>Schedule a call: <a href="https://calendly.com/intellirev">Book a meeting</a></li>
-              <li>Visit our website: <a href="https://ai.intellirev.space">ai.intellirev.space</a></li>
-            </ul>
-            
-            <p style="margin-top: 30px;">Best regards,<br>
-            <strong>The IntelliRev AI Team</strong></p>
-          </div>
-          
-          <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-            © 2026 IntelliRev AI Solutions. All rights reserved.
-          </p>
-        </div>
+          </body>
+        </html>
       `,
     });
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
-    
+
     logger.log(`Prospect confirmation sent successfully`);
   } catch (error) {
     logger.error("Error sending prospect confirmation:", error);
@@ -209,14 +193,6 @@ async function sendProspectConfirmation(resend, inquiry) {
   }
 }
 
-/**
- * Get color based on lead score
- */
-function getScoreColor(score) {
-  if (score >= 80) return "#dc2626"; // Red for hot
-  if (score >= 50) return "#f97316"; // Orange for warm
-  return "#6b7280"; // Gray for cold
-}
 
 /**
  * Send reply email from admin dashboard
@@ -228,27 +204,27 @@ exports.sendReplyEmail = onDocumentCreated(
   },
   async (event) => {
     const snapshot = event.data;
-    
+
     if (!snapshot) {
       logger.log("No data associated with the event");
       return;
     }
-    
+
     const reply = snapshot.data();
     const inquiryId = event.params.inquiryId;
-    
+
     // Get inquiry details
     const inquiryDoc = await admin.firestore().collection("inquiries").doc(inquiryId).get();
     const inquiry = inquiryDoc.data();
-    
+
     if (!inquiry) {
       logger.error("Inquiry not found:", inquiryId);
       return;
     }
-    
+
     // Initialize Resend
     const resend = new Resend(resendApiKey.value());
-    
+
     try {
       const data = await resend.emails.send({
         from: fromEmail.value(),
@@ -277,11 +253,11 @@ exports.sendReplyEmail = onDocumentCreated(
           </div>
         `,
       });
-      
+
       if (data.error) {
         throw new Error(data.error.message);
       }
-      
+
       // Update reply to mark as sent
       await admin.firestore()
         .collection("inquiries")
@@ -292,7 +268,7 @@ exports.sendReplyEmail = onDocumentCreated(
           emailSent: true,
           sentAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      
+
       logger.log(`Reply email sent for inquiry ${inquiryId}`);
     } catch (error) {
       logger.error("Error sending reply email:", error);
@@ -312,40 +288,39 @@ exports.exportInquiriesToCSV = require("firebase-functions/v2/https").onRequest(
   async (req, res) => {
     // Check for authentication token (you'll need to implement this)
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).send("Unauthorized");
       return;
     }
-    
+
     try {
       // Get inquiries from Firestore
       const inquiriesSnapshot = await admin.firestore()
         .collection("inquiries")
         .orderBy("createdAt", "desc")
         .get();
-      
+
       // Convert to CSV
-      let csv = "Name,Email,Message,Status,Lead Score,Created At\n";
-      
+      let csv = "Name,Email,Message,Status,Created At\n";
+
       inquiriesSnapshot.forEach((doc) => {
         const inquiry = doc.data();
-        const createdAt = inquiry.createdAt ? 
+        const createdAt = inquiry.createdAt ?
           new Date(inquiry.createdAt.toDate()).toISOString() : "";
-        
+
         csv += `"${escapeCsv(inquiry.name || "")}",`;
         csv += `"${escapeCsv(inquiry.email || "")}",`;
         csv += `"${escapeCsv(inquiry.message || "")}",`;
         csv += `"${escapeCsv(inquiry.status || "new")}",`;
-        csv += `${inquiry.leadScore || 0},`;
         csv += `"${createdAt}"\n`;
       });
-      
+
       // Set headers for CSV download
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=inquiries.csv");
       res.status(200).send(csv);
-      
+
       logger.log("CSV export completed successfully");
     } catch (error) {
       logger.error("Error exporting inquiries:", error);

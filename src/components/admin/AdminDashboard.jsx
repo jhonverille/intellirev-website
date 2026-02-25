@@ -223,10 +223,12 @@ const AdminDashboard = () => {
         setExporting(true);
         try {
             const sortedInquiries = [...inquiries].sort((a, b) => {
-                return (b.leadScore || 0) - (a.leadScore || 0);
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
             });
 
-            let csv = "Name,Email,Message,Status,Lead Score,Created At\n";
+            let csv = "Name,Email,Message,Status,Created At\n";
 
             sortedInquiries.forEach((inquiry) => {
                 const createdAt = inquiry.createdAt ?
@@ -236,7 +238,6 @@ const AdminDashboard = () => {
                 csv += `"${escapeCsv(inquiry.email || '')}",`;
                 csv += `"${escapeCsv(inquiry.message || '')}",`;
                 csv += `"${escapeCsv(inquiry.status || 'new')}",`;
-                csv += `${inquiry.leadScore || 0},`;
                 csv += `"${createdAt}"\n`;
             });
 
@@ -266,12 +267,6 @@ const AdminDashboard = () => {
         return str;
     };
 
-    // Get lead score color and label
-    const getLeadScoreInfo = (score) => {
-        if (score >= 80) return { color: 'bg-red-500', label: '🔥 HOT', textColor: 'text-red-500' };
-        if (score >= 50) return { color: 'bg-orange-500', label: '🟡 WARM', textColor: 'text-orange-500' };
-        return { color: 'bg-gray-500', label: '🔵 COLD', textColor: 'text-gray-500' };
-    };
 
     // Dynamic Form Fields based on Tab
     const renderFormFields = () => {
@@ -719,8 +714,7 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     ))}
-                    {activeTab === 'inquiries' && inquiries?.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0)).map(inquiry => {
-                        const scoreInfo = getLeadScoreInfo(inquiry.leadScore || 0);
+                    {activeTab === 'inquiries' && inquiries?.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).map(inquiry => {
                         const inquiryReplies = replies[inquiry.id] || [];
 
                         return (
@@ -735,11 +729,6 @@ const AdminDashboard = () => {
                                                     'bg-gray-500/20 text-gray-500'
                                                 }`}>
                                                 {inquiry.status || 'new'}
-                                            </span>
-                                            {/* Lead Score Badge */}
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${scoreInfo.color}/20 ${scoreInfo.textColor} flex items-center gap-1`}>
-                                                <Star size={10} />
-                                                {scoreInfo.label} ({inquiry.leadScore || 0}/100)
                                             </span>
                                         </div>
                                         <p className="text-xs text-gray-500">{inquiry.email}</p>
