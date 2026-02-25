@@ -14,7 +14,7 @@
 - [x] Global "Book a Call" buttons in Navbar and Hero
 - [x] Calendly links synchronized in Prospect Confirmation emails
 
-### 1. Core Website Features
+### 2. Core Website Features
 - [x] React 19 + Vite 6.0 frontend
 - [x] Tailwind CSS 4.0 styling
 - [x] Framer Motion animations
