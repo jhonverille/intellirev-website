@@ -100,10 +100,8 @@ const ContactSection = () => {
                             </div>
                         </div>
 
-                        <a
-                            href={contactInfo.bookingLink.startsWith('http') ? contactInfo.bookingLink : `https://${contactInfo.bookingLink}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <div
+                            onClick={() => setIsCalendlyOpen(true)}
                             className="flex items-center gap-6 group cursor-pointer"
                         >
                             <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-all">
@@ -113,7 +111,7 @@ const ContactSection = () => {
                                 <p className="text-[10px] text-gray-600 uppercase tracking-widest font-black">Booking</p>
                                 <p className="text-lg font-bold group-hover:text-orange-500 transition-colors">{contactInfo.bookingLink}</p>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
