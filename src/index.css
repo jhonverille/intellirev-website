@@ -9,6 +9,10 @@
     --font-outfit: 'Outfit', sans-serif;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: var(--color-bg-dark);
     color: #ffffff;

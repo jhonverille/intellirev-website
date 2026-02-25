@@ -28,7 +28,7 @@ const ConcentricHero = () => {
     };
 
     return (
-        <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden bg-black">
+        <div id="home" className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden bg-black">
             {/* Restored Industrial Metal Background */}
             <div
                 className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-luminosity lg:mix-blend-normal"

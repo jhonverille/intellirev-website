@@ -12,12 +12,12 @@ const Navbar = () => {
             className="fixed top-0 left-0 right-0 z-50 py-6 px-10"
         >
             <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <img src="/brand_full.jpg" alt="Intellirev AI Logo" className="h-12 w-auto object-contain rounded-md" />
-                    <span className="text-2xl font-black tracking-tighter uppercase font-outfit">
+                <a href="#home" className="flex items-center gap-2 group cursor-pointer">
+                    <img src="/brand_full.jpg" alt="Intellirev AI Logo" className="h-12 w-auto object-contain rounded-md transition-transform group-hover:scale-105" />
+                    <span className="text-2xl font-black tracking-tighter uppercase font-outfit group-hover:text-white transition-colors">
                         Intellirev <span className="text-orange-500">AI</span>
                     </span>
-                </div>
+                </a>
 
                 <div className="hidden md:flex items-center gap-10">
                     {['Services', 'Work', 'Testimonials', 'FAQ', 'Contact'].map((item) => (
