@@ -28,13 +28,18 @@ const ConcentricHero = () => {
     };
 
     return (
-        <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden bg-[#000000]">
-            {/* Minimalist Industrial Background */}
+        <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden bg-black">
+            {/* Restored Industrial Metal Background */}
             <div
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 mix-blend-luminosity"
-                style={{ backgroundImage: 'url("/metal_bg.png")' }}
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-luminosity lg:mix-blend-normal"
+                style={{
+                    backgroundImage: 'url("/metal_bg.png")',
+                    backgroundSize: 'cover',
+                }}
             >
-                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+                {/* Dark Vignette/Gradient Overlay to ensure text readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-80" />
+                <div className="absolute inset-0 bg-black/40" />
             </div>
 
             <div className="relative z-10 text-center space-y-12 px-6 max-w-6xl mx-auto">
