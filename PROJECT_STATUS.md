@@ -38,7 +38,13 @@
 - [x] Protected admin routes (auto-redirect to login if not authenticated)
 - [x] Auto-redirect logged-in users away from /login
 
-### 3. Inquiry System (Premium)
+### 4. Documentation
+- [x] Technical Architecture Overview
+- [x] **Vibe Coding Blueprint** (`docs/VIBE_CODING_GUIDE.md`)
+- [x] **Manual Build Guide** (`docs/MANUAL_BUILD_GUIDE.md`)
+- [x] SEO Strategy Implementation
+
+### 5. Inquiry System (Premium)
 - [x] Contact form with validation
 - [x] Inquiries saved to Firestore
 - [x] Admin dashboard to view inquiries
@@ -47,7 +53,7 @@
 - [x] Timestamp tracking (GMT+8 Manila Time)
 - [x] Sorting by newest inquiries first
 
-### 4. Firebase Cloud Functions (DEPLOYED ✅)
+### 6. Firebase Cloud Functions (DEPLOYED ✅)
 **Location:** `/functions/` directory  
 **Runtime:** Node.js 22
 
