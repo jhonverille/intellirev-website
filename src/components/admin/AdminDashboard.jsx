@@ -132,7 +132,7 @@ const AdminDashboard = () => {
         try {
             let finalData = { ...formData };
 
-            // Handle Image Upload for Testimonials (and potentially Projects later)
+            // Handle Image Upload for Testimonials & Projects
             if (selectedFile) {
                 setUploadingImage(true);
                 const fileExt = selectedFile.name.split('.').pop();
@@ -142,8 +142,17 @@ const AdminDashboard = () => {
                 const snapshot = await uploadBytes(storageRef, selectedFile);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
-                finalData.img = downloadURL; // Use 'img' to match existing Testimonials.jsx logic
+                if (activeTab === 'testimonials') {
+                    finalData.img = downloadURL;
+                } else if (activeTab === 'projects') {
+                    finalData.image = downloadURL;
+                }
                 setUploadingImage(false);
+            }
+
+            // Convert tech stack string to array if it exists as a string
+            if (activeTab === 'projects' && typeof finalData.details?.techStack === 'string') {
+                finalData.details.techStack = finalData.details.techStack.split(',').map(s => s.trim()).filter(Boolean);
             }
 
             const collectionRef = collection(db, activeTab);
@@ -302,21 +311,23 @@ const AdminDashboard = () => {
         }
         if (activeTab === 'projects') {
             return (
-                <>
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase text-gray-500">Project Title</label>
                         <input
                             value={formData.title || ''}
                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                             className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                            placeholder="e.g. Eco-Trend AI"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase text-gray-500">Description</label>
+                        <label className="text-xs font-bold uppercase text-gray-500">Short Description (Cards)</label>
                         <textarea
                             value={formData.desc || ''}
                             onChange={e => setFormData({ ...formData, desc: e.target.value })}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-32"
+                            className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-20"
+                            placeholder="Briefly describe the project..."
                         />
                     </div>
                     <div className="space-y-2">
@@ -325,9 +336,149 @@ const AdminDashboard = () => {
                             value={formData.info || ''}
                             onChange={e => setFormData({ ...formData, info: e.target.value })}
                             className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                            placeholder="e.g. Machine Learning / Analytics"
                         />
                     </div>
-                </>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase text-gray-500">Demo Link (URL)</label>
+                        <input
+                            value={formData.demoUrl || ''}
+                            onChange={e => setFormData({ ...formData, demoUrl: e.target.value })}
+                            className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                            placeholder="https://demo.intellirev.ai"
+                        />
+                    </div>
+
+                    <div className="pt-6 border-t border-white/5 space-y-4">
+                        <label className="text-[10px] font-black uppercase text-orange-500 tracking-widest">Case Study Expansion</label>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-gray-500">Problem Statement</label>
+                            <textarea
+                                value={formData.details?.problem || ''}
+                                onChange={e => setFormData({ ...formData, details: { ...formData.details, problem: e.target.value } })}
+                                className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-24"
+                                placeholder="What was the challenge?"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-gray-500">Solution</label>
+                            <textarea
+                                value={formData.details?.solution || ''}
+                                onChange={e => setFormData({ ...formData, details: { ...formData.details, solution: e.target.value } })}
+                                className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none h-24"
+                                placeholder="How did AI solve it?"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-gray-500">Tech Stack (comma separated)</label>
+                            <input
+                                value={Array.isArray(formData.details?.techStack) ? formData.details.techStack.join(', ') : formData.details?.techStack || ''}
+                                onChange={e => setFormData({ ...formData, details: { ...formData.details, techStack: e.target.value } })}
+                                className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:border-orange-500 outline-none"
+                                placeholder="React, Python, GPT-4o..."
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 pb-4">
+                            <div className="space-y-1">
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Metric 1 Name</label>
+                                <input
+                                    value={formData.details?.metrics?.[0]?.label || 'Efficiency'}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[0] = { ...m[0], label: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Value</label>
+                                <input
+                                    value={formData.details?.metrics?.[0]?.value || ''}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[0] = { ...m[0], value: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Metric 2 Name</label>
+                                <input
+                                    value={formData.details?.metrics?.[1]?.label || 'Latency'}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[1] = { ...m[1], label: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Value</label>
+                                <input
+                                    value={formData.details?.metrics?.[1]?.value || ''}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[1] = { ...m[1], value: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Metric 3 Name</label>
+                                <input
+                                    value={formData.details?.metrics?.[2]?.label || 'Automated'}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[2] = { ...m[2], label: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                                <label className="text-[8px] font-bold uppercase text-gray-500">Value</label>
+                                <input
+                                    value={formData.details?.metrics?.[2]?.value || ''}
+                                    onChange={e => {
+                                        const m = [...(formData.details?.metrics || [{ label: 'Efficiency', value: '' }, { label: 'Latency', value: '' }, { label: 'Automated', value: '' }])];
+                                        m[2] = { ...m[2], value: e.target.value };
+                                        setFormData({ ...formData, details: { ...formData.details, metrics: m } });
+                                    }}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase text-gray-500">Project Image (Optional)</label>
+                        <div className="flex items-center gap-4">
+                            {(selectedFile || formData.image) && (
+                                <img
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : formData.image}
+                                    className="w-20 h-20 rounded-xl object-cover border border-white/10"
+                                    alt="Preview"
+                                />
+                            )}
+                            <label className="flex-1 cursor-pointer">
+                                <div className="w-full bg-white/5 border border-dashed border-white/20 rounded-xl p-4 flex flex-col items-center justify-center hover:bg-white/10 transition-all gap-2">
+                                    <Upload size={16} className="text-gray-500" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                        {selectedFile ? selectedFile.name : 'Upload Project Image'}
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                </div>
             );
         }
         if (activeTab === 'testimonials') {
