@@ -20,23 +20,23 @@ const ConcentricHero = () => {
                 <div className="absolute inset-0 bg-black/40" />
             </div>
 
-            <div className="absolute inset-0 flex items-center justify-center z-5">
+            <div className="absolute inset-0 flex items-center justify-center z-[1]">
                 {[...Array(12)].map((_, i) => (
                     <motion.div
                         key={i}
-                        initial={{ opacity: 0, scale: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.5, rotate: 0 }}
                         animate={{
-                            opacity: [0.1, 0.3, 0.1],
-                            scale: [1, 1.2, 1],
-                            rotate: i * 30
+                            opacity: [0.15, 0.4, 0.15],
+                            scale: [1, 1.1 + (i * 0.02), 1],
+                            rotate: 360
                         }}
                         transition={{
-                            duration: 8,
+                            duration: 10 + (i * 2),
                             repeat: Infinity,
-                            delay: i * 0.5,
-                            ease: "easeInOut"
+                            delay: i * 0.2,
+                            ease: "linear"
                         }}
-                        className="absolute border border-orange-500/20 rounded-full"
+                        className="absolute border border-orange-500/30 rounded-full"
                         style={{
                             width: `${(i + 1) * 80}px`,
                             height: `${(i + 1) * 80}px`,
@@ -45,7 +45,7 @@ const ConcentricHero = () => {
                     />
                 ))}
                 {/* Central Core Glow */}
-                <div className="absolute w-32 h-32 bg-orange-600/40 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute w-32 h-32 bg-orange-600/50 rounded-full blur-3xl animate-pulse" />
             </div>
 
             <div className="relative z-10 text-center space-y-8 px-6">
