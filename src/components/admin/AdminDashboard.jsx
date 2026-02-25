@@ -27,7 +27,11 @@ const AdminDashboard = () => {
     const [contactSettings, setContactSettings] = useState({
         email: '',
         phone: '',
-        bookingLink: ''
+        bookingLink: '',
+        facebook: '',
+        linkedin: '',
+        twitter: '',
+        instagram: ''
     });
     const [saving, setSaving] = useState(false);
 
@@ -803,14 +807,61 @@ const AdminDashboard = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">Booking Link Label</label>
+                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">Booking Link URL</label>
                                     <input
                                         type="text"
                                         value={contactSettings.bookingLink}
                                         onChange={(e) => setContactSettings({ ...contactSettings, bookingLink: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-orange-500 transition-colors text-white"
-                                        placeholder="Calendly.com/intellirev"
+                                        placeholder="calendly.com/intellirev-space"
                                     />
+                                </div>
+
+                                <div className="pt-6 border-t border-white/5 space-y-6">
+                                    <label className="text-[10px] font-black uppercase text-orange-500 tracking-widest">Social Media Presence</label>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">Facebook URL</label>
+                                            <input
+                                                type="text"
+                                                value={contactSettings.facebook || ''}
+                                                onChange={(e) => setContactSettings({ ...contactSettings, facebook: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-orange-500 transition-colors text-white text-sm"
+                                                placeholder="facebook.com/intellirev"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">LinkedIn URL</label>
+                                            <input
+                                                type="text"
+                                                value={contactSettings.linkedin || ''}
+                                                onChange={(e) => setContactSettings({ ...contactSettings, linkedin: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-orange-500 transition-colors text-white text-sm"
+                                                placeholder="linkedin.com/company/intellirev"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">Twitter / X URL</label>
+                                            <input
+                                                type="text"
+                                                value={contactSettings.twitter || ''}
+                                                onChange={(e) => setContactSettings({ ...contactSettings, twitter: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-orange-500 transition-colors text-white text-sm"
+                                                placeholder="x.com/intellirev"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-2">Instagram URL</label>
+                                            <input
+                                                type="text"
+                                                value={contactSettings.instagram || ''}
+                                                onChange={(e) => setContactSettings({ ...contactSettings, instagram: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-orange-500 transition-colors text-white text-sm"
+                                                placeholder="instagram.com/intellirev"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <button
                                     type="submit"

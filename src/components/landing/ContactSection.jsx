@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Calendar } from 'lucide-react';
+import { Mail, Phone, Calendar, Facebook, Linkedin, Twitter, Instagram } from 'lucide-react';
 import { doc, onSnapshot, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { PopupModal } from 'react-calendly';
 
-const ContactSection = () => {
-    const [contactInfo, setContactInfo] = useState({
-        email: 'hello@intellirev.ai',
-        phone: '+1 (555) AI-SOLVE',
-        bookingLink: 'calendly.com/intellirev-space'
-    });
+const ContactSection = ({ contactInfo }) => {
     const [form, setForm] = useState({ name: '', email: '', message: '' });
     const [sending, setSending] = useState(false);
     const [status, setStatus] = useState(null); // null, 'success', 'error'
@@ -37,19 +32,6 @@ const ContactSection = () => {
         }
     };
 
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, 'settings', 'contact_info'), (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                // Only update fields that exist in the doc to verify we don't overwrite with empty strings if something is missing
-                setContactInfo(prev => ({
-                    ...prev,
-                    ...data
-                }));
-            }
-        });
-        return () => unsub();
-    }, []);
 
     return (
         <section id="contact" className="relative py-32 px-6 overflow-hidden">
@@ -111,6 +93,30 @@ const ContactSection = () => {
                                 <p className="text-[10px] text-gray-600 uppercase tracking-widest font-black">Booking</p>
                                 <p className="text-lg font-bold group-hover:text-orange-500 transition-colors">{contactInfo.bookingLink}</p>
                             </div>
+                        </div>
+
+                        {/* Social Links Row */}
+                        <div className="pt-8 border-t border-white/5 flex gap-4">
+                            {contactInfo.facebook && (
+                                <a href={contactInfo.facebook.startsWith('http') ? contactInfo.facebook : `https://${contactInfo.facebook}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-black transition-all">
+                                    <Facebook size={18} />
+                                </a>
+                            )}
+                            {contactInfo.linkedin && (
+                                <a href={contactInfo.linkedin.startsWith('http') ? contactInfo.linkedin : `https://${contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-black transition-all">
+                                    <Linkedin size={18} />
+                                </a>
+                            )}
+                            {contactInfo.twitter && (
+                                <a href={contactInfo.twitter.startsWith('http') ? contactInfo.twitter : `https://${contactInfo.twitter}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-black transition-all">
+                                    <Twitter size={18} />
+                                </a>
+                            )}
+                            {contactInfo.instagram && (
+                                <a href={contactInfo.instagram.startsWith('http') ? contactInfo.instagram : `https://${contactInfo.instagram}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-black transition-all">
+                                    <Instagram size={18} />
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
