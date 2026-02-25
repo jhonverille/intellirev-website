@@ -25,15 +25,17 @@ const ConcentricHero = () => {
                 {[...Array(12)].map((_, i) => (
                     <motion.div
                         key={i}
-                        initial={{ opacity: 0, rotate: 0 }}
+                        initial={{ opacity: 0, rotate: i * 30 }}
                         animate={{
                             opacity: [0.2, 0.5, 0.2],
-                            rotate: 360
+                            rotate: i % 2 === 0 ? 360 : -360,
+                            scale: [1, 1.02, 1]
                         }}
                         transition={{
-                            duration: 12 + i * 3,
+                            duration: 10 + (i * 2), // Varying speeds for depth
                             repeat: Infinity,
-                            ease: "linear"
+                            ease: "linear",
+                            delay: i * 0.1
                         }}
                         className="absolute border border-orange-500/40 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.1)]"
                         style={{
