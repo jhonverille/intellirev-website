@@ -64,7 +64,7 @@ const ConcentricHero = () => {
                         className="text-7xl md:text-9xl font-black tracking-tighter leading-none text-white"
                     >
                         {"INTELLIREV".split("").map((char, i) => (
-                            <motion.span key={i} variants={charVariants} className="inline-block hover:text-orange-500 transition-colors duration-300 cursor-default">
+                            <motion.span key={i} variants={charVariants} className="inline-block">
                                 {char}
                             </motion.span>
                         ))}
