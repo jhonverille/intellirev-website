@@ -3,16 +3,18 @@ import { motion } from 'framer-motion';
 import { Mail, Phone, Calendar } from 'lucide-react';
 import { doc, onSnapshot, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { PopupModal } from 'react-calendly';
 
 const ContactSection = () => {
     const [contactInfo, setContactInfo] = useState({
         email: 'hello@intellirev.ai',
         phone: '+1 (555) AI-SOLVE',
-        bookingLink: 'Calendly.com/intellirev'
+        bookingLink: 'calendly.com/intellirev-space'
     });
     const [form, setForm] = useState({ name: '', email: '', message: '' });
     const [sending, setSending] = useState(false);
     const [status, setStatus] = useState(null); // null, 'success', 'error'
+    const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,6 +27,7 @@ const ContactSection = () => {
             });
             setStatus('success');
             setForm({ name: '', email: '', message: '' });
+
             setTimeout(() => setStatus(null), 5000);
         } catch (error) {
             console.error("Error sending message:", error);
@@ -168,6 +171,13 @@ const ContactSection = () => {
                     </div>
                 </div>
             </div>
+
+            <PopupModal
+                url="https://calendly.com/intellirev-space"
+                onModalClose={() => setIsCalendlyOpen(false)}
+                open={isCalendlyOpen}
+                rootElement={document.getElementById('root')}
+            />
         </section>
     );
 };

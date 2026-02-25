@@ -1,6 +1,6 @@
 # IntelliRev Website - Project Status
 
-**Last Updated:** February 25, 2026 - World-Class Email Redesign & Lead Scoring Removal  
+**Last Updated:** February 25, 2026 - Calendly Lead Conversion Integration  
 **Project:** IntelliRev AI Solutions Website  
 **Repository:** https://github.com/jhonverille/intellirev-website  
 **Live URL:** https://ai.intellirev.space
@@ -8,6 +8,11 @@
 ---
 
 ## ✅ COMPLETED
+
+### 1. Booking & Lead Conversion
+- [x] Full Calendly integration (`calendly.com/intellirev-space`)
+- [x] Global "Book a Call" buttons in Navbar and Hero
+- [x] Calendly links synchronized in Prospect Confirmation emails
 
 ### 1. Core Website Features
 - [x] React 19 + Vite 6.0 frontend

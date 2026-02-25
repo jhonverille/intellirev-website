@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { PopupModal } from 'react-calendly';
 
 const Navbar = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
         <motion.nav
             initial={{ y: -100 }}
@@ -31,11 +34,19 @@ const Navbar = () => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsOpen(true)}
                     className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-black font-black rounded-full transition-all text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(249,115,22,0.3)]"
                 >
                     Book a Call
                 </motion.button>
             </div>
+
+            <PopupModal
+                url="https://calendly.com/intellirev-space"
+                onModalClose={() => setIsOpen(false)}
+                open={isOpen}
+                rootElement={document.getElementById('root')}
+            />
         </motion.nav>
     );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { PopupWidget } from 'react-calendly';
+import { PopupModal } from 'react-calendly';
 
 const ConcentricHero = () => {
-    const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <div className="relative w-full min-h-[900px] flex items-center justify-center overflow-hidden">
@@ -84,6 +84,7 @@ const ConcentricHero = () => {
                     transition={{ duration: 0.8, delay: 0.6 }}
                 >
                     <motion.button
+                        onClick={() => setIsOpen(true)}
                         whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(249,115,22,0.6)" }}
                         whileTap={{ scale: 0.95 }}
                         className="px-10 py-5 bg-orange-500 hover:bg-orange-600 text-black font-black rounded-full transition-all shadow-[0_0_40px_rgba(249,115,22,0.4)] uppercase tracking-tighter text-lg"
@@ -100,6 +101,13 @@ const ConcentricHero = () => {
                     </motion.button>
                 </motion.div>
             </div>
+
+            <PopupModal
+                url="https://calendly.com/intellirev-space"
+                onModalClose={() => setIsOpen(false)}
+                open={isOpen}
+                rootElement={document.getElementById('root')}
+            />
         </div>
     );
 };

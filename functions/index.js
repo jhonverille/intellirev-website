@@ -165,7 +165,7 @@ async function sendProspectConfirmation(resend, inquiry) {
                 <div class="action-card">
                   <span class="label" style="color: #ffffff;">Quick Action</span>
                   <div class="text" style="color: #ffffff; margin-bottom: 16px; font-size: 14px;">Want to move faster? Use the link below to sync directly with our lead automation engineer.</div>
-                  <a href="https://calendly.com/intellirev" class="button">Sync Calendars</a>
+                  <a href="https://calendly.com/intellirev-space" class="button">Sync Calendars</a>
                 </div>
 
                 <div class="text" style="font-size: 14px;">
