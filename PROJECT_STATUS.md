@@ -42,6 +42,7 @@
 - [x] Technical Architecture Overview
 - [x] **Vibe Coding Blueprint** (`docs/VIBE_CODING_GUIDE.md`)
 - [x] **Manual Build Guide** (`docs/MANUAL_BUILD_GUIDE.md`)
+- [x] **Beginner's "Why" Guide** (`docs/BEGINNERS_GUIDE.md`)
 - [x] SEO Strategy Implementation
 
 ### 5. Inquiry System (Premium)
